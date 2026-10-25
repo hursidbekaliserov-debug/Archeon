@@ -8,9 +8,9 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspace=@naqshlab/web",
-    "build": "npm run build --workspace=@naqshlab/web",
+    "build": "npm run build --workspace=@naqshlab/shared && npm run build --workspace=@naqshlab/web",
     "start": "npm run start --workspace=@naqshlab/web",
-    "postinstall": "prisma generate --schema=apps/web/prisma/schema.prisma",
+    "postinstall": "npm run build --workspace=@naqshlab/shared && prisma generate --schema=apps/web/prisma/schema.prisma",
     "test": "npm run test --workspace=@naqshlab/web && .\\apps\\worker\\.venv\\Scripts\\pytest.exe apps/worker",
     "test:worker": ".\\apps\\worker\\.venv\\Scripts\\pytest.exe apps/worker",
     "test:web": "npm run test --workspace=@naqshlab/web",
