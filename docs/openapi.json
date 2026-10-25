@@ -1,0 +1,737 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "NaqshLab Geometry & Manufacturing Worker",
+    "description": "Computational geometry, toolpath planning, and quality control engine.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ready": {
+      "get": {
+        "summary": "Ready",
+        "operationId": "ready_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/delta-e": {
+      "post": {
+        "summary": "Calculate Delta E",
+        "operationId": "calculate_delta_e_delta_e_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeltaERequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rectify": {
+      "post": {
+        "summary": "Rectify Endpoint",
+        "operationId": "rectify_endpoint_rectify_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualCalibrationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/symmetry": {
+      "post": {
+        "summary": "Symmetry Endpoint",
+        "operationId": "symmetry_endpoint_symmetry_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "title": "Data"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/segment": {
+      "post": {
+        "summary": "Segment Endpoint",
+        "operationId": "segment_endpoint_segment_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "title": "Data"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/complete": {
+      "post": {
+        "summary": "Complete Endpoint",
+        "operationId": "complete_endpoint_complete_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "title": "Data"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vectorize": {
+      "post": {
+        "summary": "Vectorize Endpoint",
+        "operationId": "vectorize_endpoint_vectorize_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "title": "Data"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/heightmap": {
+      "post": {
+        "summary": "Heightmap Endpoint",
+        "operationId": "heightmap_endpoint_heightmap_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "title": "Data"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mesh": {
+      "post": {
+        "summary": "Mesh Endpoint",
+        "operationId": "mesh_endpoint_mesh_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "title": "Data"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/split-modules": {
+      "post": {
+        "summary": "Split Modules Endpoint",
+        "operationId": "split_modules_endpoint_split_modules_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PanelSplitRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/toolpath": {
+      "post": {
+        "summary": "Toolpath Endpoint",
+        "operationId": "toolpath_endpoint_toolpath_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ToolpathRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/deviation": {
+      "post": {
+        "summary": "Deviation Endpoint",
+        "operationId": "deviation_endpoint_deviation_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "title": "Data"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pdf/qc-report": {
+      "post": {
+        "summary": "Qc Report Pdf Endpoint",
+        "operationId": "qc_report_pdf_endpoint_pdf_qc_report_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "title": "Data"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pdf/certificate": {
+      "post": {
+        "summary": "Certificate Pdf Endpoint",
+        "operationId": "certificate_pdf_endpoint_pdf_certificate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "title": "Data"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DeltaERequest": {
+        "properties": {
+          "lab1": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Lab1",
+            "description": "[L, a, b] point 1"
+          },
+          "lab2": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Lab2",
+            "description": "[L, a, b] point 2"
+          },
+          "kl": {
+            "type": "number",
+            "title": "Kl",
+            "default": 1.0
+          },
+          "kc": {
+            "type": "number",
+            "title": "Kc",
+            "default": 1.0
+          },
+          "kh": {
+            "type": "number",
+            "title": "Kh",
+            "default": 1.0
+          }
+        },
+        "type": "object",
+        "required": [
+          "lab1",
+          "lab2"
+        ],
+        "title": "DeltaERequest"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "service": {
+            "type": "string",
+            "title": "Service"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "service",
+          "version"
+        ],
+        "title": "HealthResponse"
+      },
+      "ManualCalibrationRequest": {
+        "properties": {
+          "pt1": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Pt1"
+          },
+          "pt2": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Pt2"
+          },
+          "known_distance_mm": {
+            "type": "number",
+            "title": "Known Distance Mm"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pt1",
+          "pt2",
+          "known_distance_mm"
+        ],
+        "title": "ManualCalibrationRequest"
+      },
+      "PanelSplitRequest": {
+        "properties": {
+          "panel_width_mm": {
+            "type": "number",
+            "title": "Panel Width Mm"
+          },
+          "panel_length_mm": {
+            "type": "number",
+            "title": "Panel Length Mm"
+          },
+          "max_module_width_mm": {
+            "type": "number",
+            "title": "Max Module Width Mm",
+            "default": 280.0
+          },
+          "max_module_length_mm": {
+            "type": "number",
+            "title": "Max Module Length Mm",
+            "default": 160.0
+          },
+          "joint_gap_mm": {
+            "type": "number",
+            "title": "Joint Gap Mm",
+            "default": 1.5
+          }
+        },
+        "type": "object",
+        "required": [
+          "panel_width_mm",
+          "panel_length_mm"
+        ],
+        "title": "PanelSplitRequest"
+      },
+      "ToolpathRequest": {
+        "properties": {
+          "width_mm": {
+            "type": "number",
+            "title": "Width Mm"
+          },
+          "length_mm": {
+            "type": "number",
+            "title": "Length Mm"
+          },
+          "relief_depth_mm": {
+            "type": "number",
+            "title": "Relief Depth Mm"
+          },
+          "tool_diameter_mm": {
+            "type": "number",
+            "title": "Tool Diameter Mm",
+            "default": 3.175
+          },
+          "stepover_mm": {
+            "type": "number",
+            "title": "Stepover Mm",
+            "default": 1.0
+          },
+          "stepdown_mm": {
+            "type": "number",
+            "title": "Stepdown Mm",
+            "default": 1.5
+          }
+        },
+        "type": "object",
+        "required": [
+          "width_mm",
+          "length_mm",
+          "relief_depth_mm"
+        ],
+        "title": "ToolpathRequest"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

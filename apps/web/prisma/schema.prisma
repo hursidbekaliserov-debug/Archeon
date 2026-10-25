@@ -1,0 +1,443 @@
+// Prisma Schema for NaqshLab
+// Dual DB architecture: SQLite for local zero-dependency dev/test, PostgreSQL 16 in Docker/prod
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    String      @id @default(uuid())
+  email                 String      @unique
+  role                  String      // CLIENT, EXPERT, WORKSHOP, OPERATOR
+  name                  String
+  organizationId        String?
+  organization          Organization? @relation(fields: [organizationId], references: [id])
+  ed25519PublicKey      String?     // Hex encoded public key for EXPERT signing
+  encryptedEd25519Priv  String?     // AES-256 encrypted private key (never exposed via API)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  sessions              Session[]
+  consents              Consent[]
+  projects              Project[]
+  signedQCRuns          QCRun[]     @relation("ExpertQCSignatures")
+  notifications         Notification[]
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Organization {
+  id                String    @id @default(uuid())
+  name              String
+  isPartnerWorkshop Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  users             User[]
+}
+
+model Project {
+  id                    String                  @id @default(uuid())
+  clientId              String
+  client                User                    @relation(fields: [clientId], references: [id])
+  name                  String
+  location              String
+  objectType            String                  // KASHI_TILE, GANCH_PANEL, MIXED
+  periodStyle           String
+  notes                 String?
+  consentFlag           Boolean                 @default(false)
+  allowExternalAi       Boolean                 @default(false)
+  status                String                  @default("DRAFT")
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  consents              Consent[]
+  sourceAssets          SourceAsset[]
+  reconstructionVersions ReconstructionVersion[]
+  pieces                Piece[]
+  quotes                Quote[]
+  orders                Order[]
+}
+
+model Consent {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id])
+  statement     String
+  ipHash        String   // SHA-256 hashed IP address
+  consentGiven  Boolean  @default(true)
+  timestamp     DateTime @default(now())
+}
+
+model SourceAsset {
+  id                  String   @id @default(uuid())
+  projectId           String
+  project             Project  @relation(fields: [projectId], references: [id])
+  assetType           String   // PHOTO, SCAN_3D, MEASUREMENTS_CSV, COLOUR_CSV
+  originalFilename    String
+  storageKey          String
+  sha256Checksum      String   // Immutable checksum
+  sizeBytes           Int
+  mimeType            String
+  magicBytesVerified  Boolean  @default(true)
+  calibrationDataJson String?
+  createdAt           DateTime @default(now())
+}
+
+model ReconstructionVersion {
+  id                  String                 @id @default(uuid())
+  projectId           String
+  project             Project                @relation(fields: [projectId], references: [id])
+  versionNumber       Int                    @default(1)
+  status              String                 @default("DRAFT") // DRAFT, IN_REVIEW, APPROVED, REJECTED
+  approvedByUserId    String?
+  approvedAt          DateTime?
+  svgData             String?
+  heightmapStorageKey String?
+  dxfStorageKey       String?
+  metadataJson        String?
+  createdAt           DateTime               @default(now())
+  regions             ReconstructionRegion[]
+  models              Model3D[]
+}
+
+model ReconstructionRegion {
+  id                    String                @id @default(uuid())
+  versionId             String
+  version               ReconstructionVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  regionIndex           Int
+  bboxJson              String
+  symmetryCandidateJson String?
+  inpaintCandidateJson  String?
+  motifCandidateJson    String?
+  chosenCandidate       String?
+  isApproved            Boolean               @default(false)
+}
+
+model Model3D {
+  id                      String                @id @default(uuid())
+  reconstructionVersionId String
+  reconstructionVersion   ReconstructionVersion @relation(fields: [reconstructionVersionId], references: [id])
+  boundingBoxJson         String
+  basePlateThicknessMm    Float                 @default(8.0)
+  reliefDepthMm           Float                 @default(6.0)
+  volumeMm3               Float
+  surfaceAreaMm2          Float
+  estimatedMassKg         Float
+  meshStorageKeyGlb       String?
+  meshStorageKeyStl       String?
+  meshStorageKeyObj       String?
+  isWatertight            Boolean               @default(true)
+  draftAngleWarningsJson  String?
+  createdAt               DateTime              @default(now())
+  jobCards                JobCard[]
+  pieces                  Piece[]
+}
+
+model ParameterSet {
+  id                  String    @id @default(uuid())
+  route               String    // KASHI, GANCH, CNC_DIRECT
+  version             Int       @default(1)
+  shrinkageX          Float     @default(0.0)
+  shrinkageY          Float     @default(0.0)
+  shrinkageZ          Float     @default(0.0)
+  clayPlasterRecipe   String
+  glazeRecipe         String?
+  firingProfileJson   String?
+  dryingHours         Int       @default(24)
+  minThicknessMm      Float     @default(8.0)
+  tolerancesJson      String
+  isFrozen            Boolean   @default(false) // Frozen once attached to active order
+  createdAt           DateTime  @default(now())
+  jobCards            JobCard[]
+}
+
+model ProductionRoute {
+  id        String   @id @default(uuid())
+  name      String
+  code      String   @unique // KASHI, GANCH, CNC_DIRECT
+  stepsJson String
+}
+
+model Workshop {
+  id            String    @id @default(uuid())
+  name          String
+  location      String
+  capacitySlots Int       @default(10)
+  createdAt     DateTime  @default(now())
+  jobCards      JobCard[]
+  tasks         Task[]
+}
+
+model JobCard {
+  id                            String       @id @default(uuid())
+  pieceId                       String       @unique
+  piece                         Piece        @relation(fields: [pieceId], references: [id])
+  model3dId                     String
+  model3d                       Model3D      @relation(fields: [model3dId], references: [id])
+  parameterSetId                String
+  parameterSet                  ParameterSet @relation(fields: [parameterSetId], references: [id])
+  workshopId                    String
+  workshop                      Workshop     @relation(fields: [workshopId], references: [id])
+  compensatedDimensionsJson     String
+  replicaMarkingRequired        Boolean      @default(true)
+  replicaMarkingTextUz          String       @default("NUSXA — ASL EMAS")
+  replicaMarkingTextEn          String       @default("REPLICA — NOT AN ORIGINAL")
+  replicaMarkingVerifiedPhotoKey String?
+  status                        String       @default("PLANNED")
+  createdAt                     DateTime     @default(now())
+  tasks                         Task[]
+}
+
+model Task {
+  id             String          @id @default(uuid())
+  jobCardId      String
+  jobCard        JobCard         @relation(fields: [jobCardId], references: [id])
+  workshopId     String
+  workshop       Workshop        @relation(fields: [workshopId], references: [id])
+  title          String
+  status         String          @default("TODO") // TODO, IN_PROGRESS, WAITING_QC, DONE, REWORK
+  orderIndex     Int             @default(0)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  checklistSteps ChecklistStep[]
+  measurements   Measurement[]
+}
+
+model ChecklistStep {
+  id                    String    @id @default(uuid())
+  taskId                String
+  task                  Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  stepName              String
+  requiresPhoto         Boolean   @default(false)
+  requiresMeasurement   Boolean   @default(false)
+  photoStorageKey       String?
+  measurementValue      Float?
+  isReplicaMarkingStep  Boolean   @default(false) // Mandatory photo required
+  isCompleted           Boolean   @default(false)
+  completedAt           DateTime?
+}
+
+model Piece {
+  id                 String          @id @default(uuid())
+  serial             String          @unique // NLB-KSH-YYYY-NNNNNN or NLB-GNC-YYYY-NNNNNN
+  projectId          String
+  project            Project         @relation(fields: [projectId], references: [id])
+  model3dId          String
+  model3d            Model3D         @relation(fields: [model3dId], references: [id])
+  status             String          @default("PLANNED")
+  replicaStatementUz String          @default("NUSXA — ASL EMAS")
+  replicaStatementEn String          @default("REPLICA — NOT AN ORIGINAL")
+  createdAt          DateTime        @default(now())
+  jobCard            JobCard?
+  measurements       Measurement[]
+  colourReadings     ColourReading[]
+  qcRuns             QCRun[]
+  certificate        Certificate?
+}
+
+model Measurement {
+  id                String   @id @default(uuid())
+  pieceId           String
+  piece             Piece    @relation(fields: [pieceId], references: [id])
+  taskId            String?
+  task              Task?    @relation(fields: [taskId], references: [id])
+  dimensionName     String   // length, width, thickness, relief_depth
+  nominalMm         Float
+  measuredMm        Float
+  deltaMm           Float
+  isWithinTolerance Boolean
+  recordedAt        DateTime @default(now())
+}
+
+model ColourReading {
+  id              String   @id @default(uuid())
+  pieceId         String
+  piece           Piece    @relation(fields: [pieceId], references: [id])
+  samplePointId   String
+  L               Float
+  a               Float
+  b               Float
+  deltaE00        Float
+  passesTolerance Boolean
+  recordedAt      DateTime @default(now())
+}
+
+model QCRun {
+  id                   String        @id @default(uuid())
+  pieceId              String
+  piece                Piece         @relation(fields: [pieceId], references: [id])
+  inspectorUserId      String
+  expertSignedUserId   String?
+  expertUser           User?         @relation("ExpertQCSignatures", fields: [expertSignedUserId], references: [id])
+  result               String        // PASS, FAIL, EXPERT_REVIEW
+  meanDeltaE           Float
+  maxDeltaE            Float
+  scanDeviation95thMm  Float
+  caliperDeviationsJson String
+  signedAt             DateTime?
+  expertSignature      String?       // Ed25519 signature
+  reworkReasonCode     String?       // crack, warp, dimension, colour, glaze_defect, carving_defect, other
+  createdAt            DateTime      @default(now())
+  qcResults            QCResult[]
+  certificate          Certificate?
+}
+
+model QCResult {
+  id          String   @id @default(uuid())
+  qcRunId     String
+  qcRun       QCRun    @relation(fields: [qcRunId], references: [id])
+  testName    String
+  passed      Boolean
+  detailsJson String
+}
+
+model Certificate {
+  id                     String    @id @default(uuid())
+  serial                 String    @unique
+  pieceId                String    @unique
+  piece                  Piece     @relation(fields: [pieceId], references: [id])
+  qcRunId                String    @unique
+  qcRun                  QCRun     @relation(fields: [qcRunId], references: [id])
+  statementUz            String    @default("NUSXA — ASL EMAS")
+  statementEn            String    @default("REPLICA — NOT AN ORIGINAL")
+  referenceObjectDesc    String
+  route                  String
+  parametersetVersion    Int
+  nominalDimsJson        String
+  measuredDimsJson       String
+  colourSummaryJson      String
+  workshopName           String
+  productionDatesJson    String
+  expertName             String
+  expertId               String
+  issueDate              DateTime  @default(now())
+  status                 String    @default("VALID") // VALID, REVOKED
+  revocationReason       String?
+  revokedAt              DateTime?
+  canonicalJson          String
+  canonicalJsonSha256    String
+  expertSignature        String
+  createdAt              DateTime  @default(now())
+}
+
+model PriceRule {
+  id                   String   @id @default(uuid())
+  itemType             String   // TILE_M2, FRIEZE_LINEAR_M, COMPLEXITY_A, COMPLEXITY_B, COMPLEXITY_C, MOULD_FEE, RUSH
+  basePriceUzs         Float
+  complexityMultiplier Float    @default(1.0)
+  routeSurchargeUzs    Float    @default(0.0)
+  mouldFeeUzs          Float    @default(0.0)
+  rushMultiplier       Float    @default(1.0)
+  active               Boolean  @default(true)
+}
+
+model Quote {
+  id          String      @id @default(uuid())
+  projectId   String
+  project     Project     @relation(fields: [projectId], references: [id])
+  subtotalUzs Float
+  vatPercent  Float       @default(0.0)
+  totalUzs    Float
+  isEstimate  Boolean     @default(true)
+  status      String      @default("ESTIMATE")
+  createdAt   DateTime    @default(now())
+  items       QuoteItem[]
+  order       Order?
+}
+
+model QuoteItem {
+  id                 String   @id @default(uuid())
+  quoteId            String
+  quote              Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  description        String
+  itemType           String
+  quantity           Float
+  unitPriceUzs       Float
+  totalPriceUzs      Float
+  replicaStatementUz String   @default("NUSXA — ASL EMAS")
+  replicaStatementEn String   @default("REPLICA — NOT AN ORIGINAL")
+}
+
+model Order {
+  id                    String       @id @default(uuid())
+  quoteId               String       @unique
+  quote                 Quote        @relation(fields: [quoteId], references: [id])
+  projectId             String
+  project               Project      @relation(fields: [projectId], references: [id])
+  status                String       @default("PENDING_CONTRACT")
+  paymentScheduleJson   String       // default 30/40/30
+  contractPdfStorageKey String?
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+  events                OrderEvent[]
+  invoices              Invoice[]
+}
+
+model OrderEvent {
+  id          String   @id @default(uuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  eventType   String
+  description String
+  timestamp   DateTime @default(now())
+}
+
+model Invoice {
+  id              String   @id @default(uuid())
+  orderId         String
+  order           Order    @relation(fields: [orderId], references: [id])
+  invoiceNumber   String   @unique
+  amountUzs       Float
+  status          String   @default("ISSUED") // ISSUED, PAID, CANCELLED
+  bankDetailsJson String
+  pdfStorageKey   String?
+  createdAt       DateTime @default(now())
+}
+
+model Motif {
+  id            String   @id @default(uuid())
+  code          String   @unique
+  name          String
+  family        String   // GIRIH, ISLIMI, ROSETTE, BORDER_STRIP
+  repeatSizeMm  Float
+  symmetryGroup String
+  svgPath       String
+  status        String   @default("SAMPLE")
+  attribution   String?
+  license       String   @default("PROJECT_ONLY_NON_TRANSFERABLE")
+  createdAt     DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+// Append-only tamper-evident audit log with hash-chain
+model AuditLog {
+  id          String   @id @default(uuid())
+  prevHash    String   // SHA-256 hash of preceding row
+  currentHash String   // SHA-256(prevHash + timestamp + userId + action + entityId + payload)
+  timestamp   DateTime @default(now())
+  userId      String
+  action      String
+  entityType  String
+  entityId    String
+  payloadJson String
+}

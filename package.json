@@ -1,0 +1,26 @@
+{
+  "name": "naqshlab-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=@naqshlab/web",
+    "build": "npm run build --workspace=@naqshlab/web",
+    "start": "npm run start --workspace=@naqshlab/web",
+    "test": "npm run test --workspace=@naqshlab/web && .\\apps\\worker\\.venv\\Scripts\\pytest.exe apps/worker",
+    "test:worker": ".\\apps\\worker\\.venv\\Scripts\\pytest.exe apps/worker",
+    "test:web": "npm run test --workspace=@naqshlab/web",
+    "test:e2e": "npx playwright test",
+    "seed": "npm run seed --workspace=@naqshlab/web",
+    "verify-audit": "npm run verify-audit --workspace=@naqshlab/web"
+  },
+  "devDependencies": {
+    "playwright": "^1.48.2"
+  },
+  "optionalDependencies": {
+    "@next/swc-win32-x64-msvc": "^16.4.3"
+  }
+}

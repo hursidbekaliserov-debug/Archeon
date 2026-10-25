@@ -1,0 +1,40 @@
+{
+  "name": "@naqshlab/web",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "lint": "next lint",
+    "test": "vitest run",
+    "seed": "tsx prisma/seed.ts",
+    "verify-audit": "tsx scripts/verify_audit.ts"
+  },
+  "dependencies": {
+    "@naqshlab/shared": "*",
+    "@prisma/client": "^5.21.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.453.0",
+    "next": "^14.2.15",
+    "qrcode": "^1.5.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "three": "^0.169.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.1",
+    "@types/three": "^0.169.0",
+    "prisma": "^5.21.1",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.3"
+  },
+  "optionalDependencies": {
+    "@next/swc-win32-x64-msvc": "^14.2.33"
+  }
+}
