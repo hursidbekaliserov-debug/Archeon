@@ -13,7 +13,11 @@ const getDatabaseUrl = () => {
     const absPath = path.resolve(process.cwd(), relPath).replace(/\\/g, "/");
     return `file:${absPath}`;
   }
-  return envUrl || "file:C:/Users/user/Desktop/Archeon/apps/web/prisma/dev.db";
+  if (envUrl) {
+    return envUrl;
+  }
+  const defaultPath = path.resolve(process.cwd(), "prisma/dev.db").replace(/\\/g, "/");
+  return `file:${defaultPath}`;
 };
 
 export const prisma =
